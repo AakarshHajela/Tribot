@@ -18,14 +18,16 @@ export function SelectPatientModal({ isOpen, onSelectPatient }: SelectPatientMod
         {/* Header */}
         <div className="px-6 pt-6 pb-4 border-b border-[#E0DED6]">
           <h2 className="text-[18px] font-semibold text-[#1A1A1A] mb-3">Select patient</h2>
+          {/* ===== SEARCH PLACEHOLDER FIX  ===== */}
           <input
             type="text"
-            placeholder="Search by name, MRN, or language…"
+            placeholder="Search by name, MRN…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoFocus
             className="w-full h-[38px] px-3 rounded-lg border border-[#E0DED6] text-[13px] focus:outline-none focus:ring-2 focus:ring-[#185FA5]"
           />
+          {/* ===== END SEARCH PLACEHOLDER FIX ===== */}
         </div>
 
         {/* Body */}

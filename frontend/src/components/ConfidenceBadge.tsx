@@ -5,14 +5,14 @@ interface ConfidenceBadgeProps {
 
 export function ConfidenceBadge({ confidence, variant }: ConfidenceBadgeProps) {
   const actualVariant = variant || (
-    confidence >= 90 ? 'high' : confidence >= 75 ? 'medium' : 'low'
+    confidence >= 70 ? 'high' : confidence >= 40 ? 'medium' : 'low'
   );
 
-  const styles = {
-    high: 'bg-[#3B6D11]/10 text-[#3B6D11] border-[#3B6D11]/30',
-    medium: 'bg-[#BA7517]/10 text-[#BA7517] border-[#BA7517]/30',
-    low: 'bg-[#A32D2D]/10 text-[#A32D2D] border-[#A32D2D]/30'
-  };
+const styles = {
+  high: 'bg-green-100 text-green-800 border-green-300',
+  medium: 'bg-amber-100 text-amber-800 border-amber-300',
+  low: 'bg-red-100 text-red-800 border-red-300'
+};
 
   const icon = {
     high: '✓',

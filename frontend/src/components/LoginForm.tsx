@@ -22,6 +22,9 @@ export default function LoginForm({
   isLocked,
 }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
+  // ===== FORGOT PASSWORD MSG  =====
+  const [showForgotMsg, setShowForgotMsg] = useState(false);
+  // ===== END FORGOT PASSWORD MSG =====
 
   return (
     <div className="flex flex-col gap-5">
@@ -97,7 +100,19 @@ export default function LoginForm({
 
       {/* Footer */}
       <div className="text-center text-[12px] text-[#aaa] mt-2">
-        <a href="/forgot-password" className="text-[#2a9d8f] no-underline hover:underline">Forgot password?</a>
+        {/* ===== FORGOT PASSWORD MSG  ===== */}
+        {showForgotMsg ? (
+          <span className="text-[#5a6a7a]">Please contact your administrator to reset your password.</span>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowForgotMsg(true)}
+            className="text-[#2a9d8f] hover:underline"
+          >
+            Forgot password?
+          </button>
+        )}
+        {/* ===== END FORGOT PASSWORD MSG ===== */}
         <span className="mx-2">·</span>
         <span>Contact your system administrator for access</span>
       </div>

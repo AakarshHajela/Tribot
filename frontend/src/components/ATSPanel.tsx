@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ATSCategoryRow } from './ATSCategoryRow';
+import { toast } from 'sonner'; // Added for validation feedback
 
 interface ATSPanelProps {
   onCategoryChange?: (category: 1 | 2 | 3 | 4 | 5 | null) => void;
@@ -8,7 +9,7 @@ interface ATSPanelProps {
   selectedCategory?: 1 | 2 | 3 | 4 | 5 | null;
 }
 
-export function ATSPanel({ 
+export function ATSPanel({
   onCategoryChange,
   onSubmit,
   readOnly = false,
@@ -18,6 +19,13 @@ export function ATSPanel({
 
   const handleCategoryClick = (category: 1 | 2 | 3 | 4 | 5) => {
     if (readOnly) return;
+    
+    // Safety check matching backend ge=1, le=5
+    if (category < 1 || category > 5) {
+      toast.error("ATS Category must be between 1 and 5.");
+      return;
+    }
+    
     setSelectedCategory(category);
     onCategoryChange?.(category);
   };
@@ -35,7 +43,6 @@ export function ATSPanel({
       {/* Header */}
       <div className="h-[32px] bg-[#F4F6F8] px-4 flex items-center justify-between border-b border-[#E0DED6] flex-shrink-0">
         <span className="text-[12px] font-medium text-[#1A1A1A]">ATS category</span>
-        <span className="text-[11px] text-[#5F5E5A]">nurse confirms</span>
       </div>
 
       {/* Categories */}
@@ -56,7 +63,7 @@ export function ATSPanel({
       {/* Submit button */}
       {!readOnly && (
         <div className="p-4 border-t border-[#E0DED6] flex-shrink-0">
-          <button 
+          <button
             onClick={onSubmit}
             disabled={!selectedCategory}
             className={`w-full px-4 py-2.5 rounded-md text-[14px] font-medium transition-colors ${

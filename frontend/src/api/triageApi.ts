@@ -110,7 +110,7 @@ export function toFrontendMessage(msg: TriageMessage): Message {
     type: msg.sender_type,
     originalText: msg.source_text,
     translatedText: msg.translated_text,
-    confidence: msg.confidence,
+    confidence_score: msg.confidence,
   };
 }
 
@@ -131,8 +131,11 @@ export interface HistoryItem {
   respiratory_rate: number | null;
   spo2: number | null;
   avg_translation_confidence: number;
+  // ===== PROVIDER NAME IN HISTORY =====
+  provider_name: string | null;
+  // ===== END PROVIDER NAME IN HISTORY =====
 }
- 
+
 interface HistoryResponse {
   total: number;
   items: HistoryItem[];

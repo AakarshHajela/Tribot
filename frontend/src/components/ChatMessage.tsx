@@ -88,11 +88,11 @@ export function ChatMessage({
             </p>
           </div>
 
-          {/* {!isPlaceholder && confidence > 0 && (
+           {!isPlaceholder && confidence > 0 && (
             <div className={`px-3 pb-2 flex ${isNurse ? 'justify-end' : 'justify-start'}`}>
               <ConfidenceBadge confidence={confidence} />
             </div>
-          )} */}
+          )} 
         </div>
       </div>
     </div>

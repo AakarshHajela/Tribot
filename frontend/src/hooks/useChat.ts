@@ -60,7 +60,7 @@ export function useChat({
         source_language: message.type === 'nurse' ? 'en' : 'ar',
         target_language: message.type === 'nurse' ? 'ar' : 'en',
         translated_text: message.translatedText,
-        confidence: message.confidence,
+        confidence: message.confidence_score,
       });
     } catch {
       // Non-fatal — message already visible in UI, backend sync is best-effort
@@ -69,7 +69,7 @@ export function useChat({
 
   const averageConfidence =
     messages.length > 0
-      ? Math.round(messages.reduce((sum, m) => sum + m.confidence, 0) / messages.length)
+      ? Math.round(messages.reduce((sum, m) => sum + m.confidence_score, 0) / messages.length)
       : 0;
 
   const lastNurseMessage = [...messages].reverse().find((m) => m.type === 'nurse');

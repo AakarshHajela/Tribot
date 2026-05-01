@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
+import { useCurrentUser } from '../hooks/useCurrentUser';
 import { LiveChatPanel } from '../components/LiveChatPanel';
 import { VitalsPanel } from '../components/VitalsPanel';
 import { ATSPanel } from '../components/ATSPanel';
@@ -19,13 +20,12 @@ type MobileTab = 'chat' | 'vitals' | 'ats';
 type TabletTab = 'vitals' | 'ats';
 
 export default function TriageWorkspace() {
-  const { mode, setMode, currentPatient, currentSession, setCurrentSession } = useApp();
+  const { mode, setMode, currentPatient, setCurrentPatient, currentSession, setCurrentSession } = useApp();
+  const { user } = useCurrentUser();
 
   const isHistoryView = mode === 'history' && !!currentSession;
   const isIdleMode = mode === 'idle';
   const isActiveMode = mode === 'active';
-  const isReadOnly = isHistoryView || isIdleMode;
-
   const { session, isSubmitting, error: sessionError, startSession, updateSession, finaliseSession, clearSession } =
     useTriageSession();
 
@@ -34,7 +34,7 @@ export default function TriageWorkspace() {
   const [selectPatientModalOpen, setSelectPatientModalOpen] = useState(!isHistoryView);
   const [selectedCategory, setSelectedCategory] = useState<ATSCategory | null>(null);
   const [hasAbnormalVitals, setHasAbnormalVitals] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [, setMessages] = useState<Message[]>([]);
   const [mobileTab, setMobileTab] = useState<MobileTab>('chat');
   const [tabletTab, setTabletTab] = useState<TabletTab>('vitals');
 
@@ -51,7 +51,7 @@ export default function TriageWorkspace() {
       console.log('[ATS] patching session', session.id, 'with category', category);
       await updateSession({ ats_category: category, nurse_confirmed_ats: true });
     } else {
-      console.warn('[ATS] skipped patch — session is null, category:', category);
+      console.warn('[ATS] skipped patch - session is null, category:', category);
     }
   }, [session, updateSession]);
 
@@ -62,7 +62,7 @@ export default function TriageWorkspace() {
     }
     const ok = await finaliseSession(selectedCategory);
     if (ok) setSessionSavedOpen(true);
-    else toast.error('Submission failed — please try again.');
+    else toast.error('Submission failed - please try again.');
   }, [selectedCategory, finaliseSession]);
 
   const handleStartNew = useCallback(() => {
@@ -76,10 +76,17 @@ export default function TriageWorkspace() {
   }, [setMode, setCurrentSession, clearSession]);
 
   const handleSelectPatient = useCallback(async (patient: Patient) => {
+    if (mode === 'active' && currentPatient) {
+      const confirmed = window.confirm(
+        `You have an active session with ${currentPatient.name}. Switching patients will discard the current session. Continue?`
+      );
+      if (!confirmed) return;
+    }
+    setCurrentPatient({ id: patient.id, name: patient.full_name, mrn: patient.mrn, language: patient.patient_language });
     setMode('active');
     setSelectPatientModalOpen(false);
     await startSession({ patient_id: patient.id, patient_language: patient.patient_language });
-  }, [setMode, startSession]);
+  }, [mode, currentPatient, setMode, setCurrentPatient, startSession]);
 
   const handleWorkspaceClick = () => {
     if (isIdleMode) setSelectPatientModalOpen(true);
@@ -91,7 +98,7 @@ export default function TriageWorkspace() {
   };
 
   // ---------------------------------------------------------------------------
-  // Shared panel props — avoids repetition across breakpoint layouts
+  // Shared panel props - avoids repetition across breakpoint layouts
   // ---------------------------------------------------------------------------
 
   const chatPanelProps = {
@@ -101,6 +108,8 @@ export default function TriageWorkspace() {
     readOnlyDate: currentSession ? currentSession.endTime.toLocaleDateString() : undefined,
     initialMessages: currentSession?.messages ?? [],
     onMessagesChange: setMessages,
+    clinicianName: user?.full_name ?? undefined,
+    patientName: currentPatient?.name ?? undefined,
   };
 
   const vitalsPanelProps = {
@@ -137,7 +146,7 @@ export default function TriageWorkspace() {
           }`}
           onClick={handleWorkspaceClick}
         >
-          {/* DESKTOP — three columns */}
+          {/* DESKTOP - three columns */}
           <div className="hidden lg:flex lg:flex-row lg:gap-4 w-full h-full">
             <div className={`flex-[5] min-w-0 ${idleClass}`}>
               <LiveChatPanel {...chatPanelProps} />
@@ -154,7 +163,7 @@ export default function TriageWorkspace() {
             </div>
           </div>
 
-          {/* TABLET — chat left, tabbed vitals/ats right */}
+          {/* TABLET - chat left, tabbed vitals/ats right */}
           <div className="hidden md:flex lg:hidden flex-row gap-4 w-full h-full">
             <div className={`flex-[55] min-w-0 ${idleClass}`}>
               <LiveChatPanel {...chatPanelProps} />
@@ -190,7 +199,7 @@ export default function TriageWorkspace() {
             </div>
           </div>
 
-          {/* MOBILE — single panel, bottom nav */}
+          {/* MOBILE - single panel, bottom nav */}
           <div className="md:hidden flex flex-col w-full h-[calc(100vh-112px)] p-4">
             <div className={`flex-1 min-h-0 ${idleClass}`}>
               {mobileTab === 'chat' && <LiveChatPanel {...chatPanelProps} />}
@@ -218,7 +227,7 @@ export default function TriageWorkspace() {
         selectedCategory={selectedCategory}
       />
       <SelectPatientModal
-        isOpen={selectPatientModalOpen}
+        isOpen={selectPatientModalOpen && !isActiveMode}
         onSelectPatient={handleSelectPatient}
       />
     </>

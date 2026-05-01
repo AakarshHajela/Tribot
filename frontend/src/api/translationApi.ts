@@ -15,13 +15,12 @@ export interface TranslationRequest {
   target_language: string;
   source_text: string;
   session_id?: string | null;
-  patient_id?: string | null;
 }
 
 export interface TranslationResponse {
   translated_text: string;
   /** Confidence score 0–100 returned by the backend (if available). */
-  confidence?: number;
+  confidence_score?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -56,5 +55,8 @@ export async function translateText(
   params: TranslationRequest,
 ): Promise<TranslationResponse> {
   const payload = buildTranslationPayload(params);
-  return apiClient.post<TranslationResponse>('/api/v1/translate', payload);
+  return apiClient.post<TranslationResponse>('/api/v1/translate', payload, {
+    timeoutMs: 300_000,
+    noRetry: true,
+  });
 }

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { VitalInput } from './VitalInput';
 import { Lock } from 'lucide-react';
 import { PatchSessionPayload } from '../api/triageApi';
+import { toast } from 'sonner'; // Added for validation feedback
 
 interface VitalsPanelProps {
   onAbnormalChange?: (hasAbnormal: boolean) => void;
@@ -27,12 +28,12 @@ export function VitalsPanel({ onAbnormalChange, onVitalsChange, readOnly = false
     }
   );
 
-  // Debounce timer ref so we don't spam PATCH on every keystroke
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const patchVitals = (updated: typeof vitals) => {
     if (!onVitalsChange || readOnly) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    
     debounceRef.current = setTimeout(() => {
       const patch: PatchSessionPayload = {};
       const sys = parseInt(updated.bp.systolic);
@@ -41,13 +42,36 @@ export function VitalsPanel({ onAbnormalChange, onVitalsChange, readOnly = false
       const rr  = parseInt(updated.rr);
       const spo2 = parseInt(updated.spo2);
       const temp = parseFloat(updated.temp);
-      if (!isNaN(sys))  patch.bp_systolic = sys;
-      if (!isNaN(dia))  patch.bp_diastolic = dia;
-      if (!isNaN(hr))   patch.heart_rate = hr;
-      if (!isNaN(rr))   patch.respiratory_rate = rr;
-      if (!isNaN(spo2)) patch.spo2 = spo2;
-      if (!isNaN(temp)) patch.temperature = temp;
-      if (Object.keys(patch).length > 0) onVitalsChange(patch);
+
+      let hasError = false;
+
+      // Safety bounds before sending to backend
+      if (!isNaN(sys)) {
+        if (sys < 0 || sys > 300) { toast.error("Systolic BP out of valid range (0-300)."); hasError = true; }
+        else patch.bp_systolic = sys;
+      }
+      if (!isNaN(dia)) {
+        if (dia < 0 || dia > 200) { toast.error("Diastolic BP out of valid range (0-200)."); hasError = true; }
+        else patch.bp_diastolic = dia;
+      }
+      if (!isNaN(hr)) {
+        if (hr < 0 || hr > 300) { toast.error("Heart rate out of valid range (0-300)."); hasError = true; }
+        else patch.heart_rate = hr;
+      }
+      if (!isNaN(rr)) {
+        if (rr < 0 || rr > 100) { toast.error("Respiratory rate out of valid range (0-100)."); hasError = true; }
+        else patch.respiratory_rate = rr;
+      }
+      if (!isNaN(spo2)) {
+        if (spo2 < 0 || spo2 > 100) { toast.error("SpO2 out of valid range (0-100)."); hasError = true; }
+        else patch.spo2 = spo2;
+      }
+      if (!isNaN(temp)) {
+        if (temp < 70 || temp > 120) { toast.error("Temperature out of valid range (70-120)."); hasError = true; }
+        else patch.temperature = temp;
+      }
+
+      if (!hasError && Object.keys(patch).length > 0) onVitalsChange(patch);
     }, 800);
   };
 
@@ -97,7 +121,6 @@ export function VitalsPanel({ onAbnormalChange, onVitalsChange, readOnly = false
           )}
           {readOnly && <Lock className="w-3 h-3 text-[#5F5E5A]" />}
         </div>
-        {!readOnly && <span className="text-[11px] text-[#3B6D11]">auto-saved</span>}
       </div>
 
       {/* Vitals inputs */}
@@ -176,15 +199,6 @@ export function VitalsPanel({ onAbnormalChange, onVitalsChange, readOnly = false
           placeholder={!readOnly}
         />
       </div>
-
-      {/* Footer note */}
-      {/* {!readOnly && (
-        <div className="px-4 pb-3 flex-shrink-0">
-          <p className="text-[11px] text-[#5F5E5A] text-center">
-            Edit anytime — changes save automatically
-          </p>
-        </div>
-      )} */}
     </div>
   );
 }

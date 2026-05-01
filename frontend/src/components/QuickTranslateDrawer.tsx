@@ -1,6 +1,5 @@
 import { X, ArrowLeftRight, Languages, Loader2 } from 'lucide-react';
 import { useState } from 'react';
-import { ConfidenceBadge } from './ConfidenceBadge';
 import { useTranslation } from '../hooks/useTranslation';
 
 interface QuickTranslateDrawerProps {
@@ -15,7 +14,6 @@ export function QuickTranslateDrawer({ isOpen, onClose }: QuickTranslateDrawerPr
   const [targetLanguage, setTargetLanguage] = useState('Arabic');
   const [inputText, setInputText] = useState('');
   const [outputText, setOutputText] = useState('');
-  const [confidence, setConfidence] = useState(0);
 
   const handleSwapLanguages = () => {
     setSourceLanguage(targetLanguage);
@@ -33,12 +31,10 @@ export function QuickTranslateDrawer({ isOpen, onClose }: QuickTranslateDrawerPr
         source_language: sourceLanguage,
         target_language: targetLanguage,
         source_text: inputText,
-        patient_id: "000",
       });
 
       if (result) {
         setOutputText(result.translated_text);
-        setConfidence(result.confidence || 0.95);
       }
     } catch (err) {
       setOutputText('⚠ Translation failed');
@@ -48,7 +44,6 @@ export function QuickTranslateDrawer({ isOpen, onClose }: QuickTranslateDrawerPr
   const handleDiscard = () => {
     setInputText('');
     setOutputText('');
-    setConfidence(0);
     onClose();
   };
 
@@ -138,11 +133,6 @@ export function QuickTranslateDrawer({ isOpen, onClose }: QuickTranslateDrawerPr
                 ) : outputText ? (
                   <div className="flex flex-col h-full justify-between">
                     <div className="text-[#1A1A1A] leading-relaxed">{outputText}</div>
-                    {confidence > 0 && (
-                      <div className="mt-4 pt-3 border-t border-[#3B6D11]/20">
-                        <ConfidenceBadge confidence={confidence} />
-                      </div>
-                    )}
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-[#5F5E5A] italic text-sm text-center px-4">

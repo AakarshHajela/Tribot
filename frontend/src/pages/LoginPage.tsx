@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router"; // 
+import { useNavigate } from "react-router"; 
+import { toast } from "sonner"; // --- ADDED ---
 import { login, LoginCredentials } from "../api/authApi";
 import LoginForm from "../components/LoginForm";
 
@@ -17,8 +18,16 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (!email || !password) {
+    // 1. FRONTEND VALIDATION (Instant checks)
+    if (!email.trim() || !password.trim()) {
       setError("Please fill in both fields.");
+      toast.warning("Email and password are required."); // Added for extra visibility
+      return;
+    }
+
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
+      toast.warning("Password too short."); // Added for extra visibility
       return;
     }
 
@@ -28,27 +37,29 @@ export default function LoginPage() {
       const credentials: LoginCredentials = { email, password };
       const user = await login(credentials);
 
-      // ===== ADMIN REDIRECT =====
-      // CurrentUser is underspecified — the /auth/me response includes `role` at runtime.
+      // Successful login
       const role = (user as unknown as { role?: string }).role;
       if (role === 'admin') {
         navigate('/admin', { replace: true });
       } else {
-        // Keep existing redirect behaviour for clinicians (and any unknown role)
         navigate('/', { replace: true });
       }
-      // ===== END ADMIN REDIRECT =====
+
     } catch (err: any) {
+      // 2. BACKEND ERROR HANDLING
       const remaining = attemptsLeft - 1;
       setAttemptsLeft(remaining);
 
-      // Extract error from your specific API client structure
-      const errorMsg = err?.response?.data?.detail || "Invalid email or password.";
+      // Since we updated apiClient.ts, the parsed error is in err.message
+      const errorMsg = err.message || "Invalid email or password.";
 
       if (remaining <= 0) {
         setError("Your account has been locked. Please contact your system administrator.");
+        toast.error("Account Locked.");
       } else {
         setError(`${errorMsg} ${remaining} attempt${remaining !== 1 ? "s" : ""} remaining.`);
+        // We don't necessarily need a toast here because the 'error' state 
+        // already shows the red box in the LoginForm.
       }
     } finally {
       setLoading(false);

@@ -28,7 +28,7 @@ export function SessionSavedModal({ isOpen, onClose, onStartNew, selectedCategor
           </div>
           <h3 className="text-[16px] font-medium text-[#1A1A1A] mb-1">Session saved</h3>
           <p className="text-[14px] text-[#5F5E5A] mb-4">
-            {categoryText} assigned to Maria Garcia. Transcript logged.
+            {categoryText} assigned to patient Transcript logged.
           </p>
           <button
             onClick={onStartNew}

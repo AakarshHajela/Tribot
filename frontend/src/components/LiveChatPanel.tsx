@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { toast } from 'sonner'; // Added for validation feedback
 
 import { ChatMessage } from './ChatMessage';
 import { Message } from '../types';
@@ -20,6 +21,8 @@ interface LiveChatPanelProps {
   readOnlyDate?: string;
   initialMessages?: Message[];
   onMessagesChange?: (messages: Message[]) => void;
+  clinicianName?: string;
+  patientName?: string;
 }
 
 export function LiveChatPanel({
@@ -29,6 +32,8 @@ export function LiveChatPanel({
   readOnlyDate,
   initialMessages = [],
   onMessagesChange,
+  clinicianName,
+  patientName,
 }: LiveChatPanelProps) {
   const [activeLanguage, setActiveLanguage] = useState<Language>('EN');
   const [inputText, setInputText] = useState('');
@@ -44,7 +49,13 @@ export function LiveChatPanel({
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputText.trim() || readOnly || isTranslating) return;
+    // Backend validation: text cannot be empty
+    if (!inputText.trim()) {
+      toast.warning("Message cannot be empty.");
+      return;
+    }
+    
+    if (readOnly || isTranslating) return;
 
     const text = inputText;
     setInputText('');
@@ -54,24 +65,23 @@ export function LiveChatPanel({
       type: senderType,
       originalText: text,
       translatedText: PLACEHOLDER_TRANSLATING[activeLanguage],
-      confidence: 0,
+      confidence_score: 0,
     });
 
     const result = await translate({
       source_language: activeLanguage === 'EN' ? 'en' : 'ar',
       target_language: activeLanguage === 'EN' ? 'ar' : 'en',
       source_text: text,
-      session_id: text,
+      session_id: text, // Note: you are passing text as session_id here, might want to check this logic
     });
 
     if (result) {
       const resolvedMessage: Partial<Message> = {
         translatedText: result.translated_text,
-        confidence: result.confidence ?? 92,
+        confidence_score: result.confidence_score ?? 92,
       };
       updateMessage(optimisticMessage.id, resolvedMessage);
 
-      // Persist to backend once we have both original + translation
       if (sessionId) {
         await saveMessage(sessionId, {
           ...optimisticMessage,
@@ -81,7 +91,7 @@ export function LiveChatPanel({
     } else {
       updateMessage(optimisticMessage.id, {
         translatedText: '⚠ Translation failed',
-        confidence: 0,
+        confidence_score: 0,
       });
     }
   };
@@ -94,7 +104,7 @@ export function LiveChatPanel({
   };
 
   const showLowConfidenceWarning =
-    !readOnly && lastNurseMessage && lastNurseMessage.confidence < 80 && lastNurseMessage.confidence > 0;
+    !readOnly && lastNurseMessage && lastNurseMessage.confidence_score < 80 && lastNurseMessage.confidence_score > 0;
 
   return (
     <>
@@ -109,7 +119,7 @@ export function LiveChatPanel({
         <ChatPanelHeader readOnly={readOnly} averageConfidence={averageConfidence} isTranslating={isTranslating} />
 
         {hasAbnormalVitals && !readOnly && (
-          <WarningBanner message="Abnormal vital recorded — review before closing session." />
+          <WarningBanner message="Abnormal vital recorded - review before closing session." />
         )}
         {error && <WarningBanner message={`Translation error: ${error}`} />}
 
@@ -120,14 +130,15 @@ export function LiveChatPanel({
               type={message.type}
               originalText={message.originalText}
               translatedText={message.translatedText}
-              confidence={message.confidence}
+              confidence={message.confidence_score}
+              senderName={message.type === 'nurse' ? clinicianName : patientName}
             />
           ))}
           <div ref={messagesEndRef} />
         </div>
 
         {showLowConfidenceWarning && (
-          <WarningBanner message="Low confidence detected — consider rephrasing or calling an interpreter." />
+          <WarningBanner message="Low confidence detected - consider rephrasing or calling an interpreter." />
         )}
 
         {readOnly ? (
@@ -148,13 +159,10 @@ export function LiveChatPanel({
   );
 }
 
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
+// Sub-components kept identical
 function ChatPanelHeader({
   readOnly,
-  averageConfidence,
+  averageConfidence: _averageConfidence,
   isTranslating,
 }: {
   readOnly: boolean;
@@ -174,7 +182,6 @@ function ChatPanelHeader({
         <span className="text-[12px] text-[#1A1A1A]">EN ↔ AR</span>
         {isTranslating && <span className="text-[11px] text-[#5F5E5A] italic ml-1">translating…</span>}
       </div>
-      <div className="text-[11px] text-[#5F5E5A]">avg conf {averageConfidence}%</div>
     </div>
   );
 }
@@ -191,7 +198,7 @@ function WarningBanner({ message }: { message: string }) {
 function ReadOnlyFooter({ date }: { date?: string }) {
   return (
     <div className="h-[52px] bg-[#F4F6F8] border-t border-[#E0DED6] px-4 flex items-center justify-center flex-shrink-0">
-      <span className="text-[12px] text-[#5F5E5A]">Read-only — session submitted {date ?? ''}</span>
+      <span className="text-[12px] text-[#5F5E5A]">Read-only - session submitted {date ?? ''}</span>
     </div>
   );
 }

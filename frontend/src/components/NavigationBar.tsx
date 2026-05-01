@@ -1,7 +1,9 @@
 import { Link, useLocation } from 'react-router';
 import { Zap, Menu, Search as SearchIcon, X, LogOut } from 'lucide-react';
 import { logout } from '../api/authApi';
+import type { CurrentUser } from '../api/authApi';
 import { PatientSearch } from './PatientSearch';
+import { ProfileDropdown } from './ProfileDropdown';
 import { Patient, AppMode } from '../types';
 import { useState } from 'react';
 
@@ -10,18 +12,32 @@ interface NavigationBarProps {
   currentPatient: Patient | null;
   onQuickTranslate: () => void;
   onSelectPatient: (patient: Patient) => void;
+  // ===== REAL INITIALS  =====
+  user: CurrentUser | null;
+  // ===== END REAL INITIALS =====
 }
 
-export function NavigationBar({ 
-  mode, 
-  currentPatient, 
+// ===== REAL INITIALS  =====
+function getInitials(user: CurrentUser | null): string {
+  if (!user?.full_name) return '?';
+  const words = user.full_name.trim().split(/\s+/);
+  const first = words[0][0] ?? '';
+  const last = words.length > 1 ? (words[words.length - 1][0] ?? '') : '';
+  return (first + last).toUpperCase();
+}
+// ===== END REAL INITIALS =====
+
+export function NavigationBar({
+  mode,
+  currentPatient,
   onQuickTranslate,
-  onSelectPatient 
+  onSelectPatient,
+  user,
 }: NavigationBarProps) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-  
+
   const isWorkspace = location.pathname === '/';
   const isHistory = location.pathname === '/history';
 
@@ -116,11 +132,11 @@ export function NavigationBar({
             <SearchIcon className="w-5 h-5" />
           </button>
 
-          <div className="w-8 h-8 bg-[#185FA5] rounded-full flex items-center justify-center">
-            <span className="text-white text-[12px] font-medium">SC</span>
-          </div>
+          {/* ===== USES SHARED PROFILE DROPDOWN  ===== */}
+          <ProfileDropdown user={user} initials={getInitials(user)} />
+          {/* ===== END USES SHARED PROFILE DROPDOWN ===== */}
 
-          {/* ===== LOGOUT BUTTON - Racha ===== */}
+          {/* ===== LOGOUT BUTTON  ===== */}
           <button
             onClick={logout}
             className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors text-[#5F5E5A] hover:bg-[#F4F6F8]"
@@ -187,15 +203,16 @@ export function NavigationBar({
       {/* Mobile search panel */}
       {mobileSearchOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-[#E0DED6] shadow-lg p-4">
-          <PatientSearch 
+          <PatientSearch
             onSelectPatient={(patient) => {
               onSelectPatient(patient);
               setMobileSearchOpen(false);
-            }} 
+            }}
             disabled={mode === 'login'}
           />
         </div>
       )}
+
     </nav>
   );
 }

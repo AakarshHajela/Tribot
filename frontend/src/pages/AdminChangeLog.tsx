@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Lock, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { Lock } from 'lucide-react';
 import { getChangeLog } from '../api/adminApi';
-import { logout } from '../api/authApi';
 import type { ChangeLogEntry } from '../types';
 
 function formatTimestamp(iso: string): string {
@@ -35,8 +33,6 @@ function getActionColor(actionType: string): { bg: string; text: string } {
 }
 
 export function AdminChangeLog() {
-  const navigate = useNavigate();
-
   // ── Data state ──
   const [logs, setLogs] = useState<ChangeLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,133 +54,17 @@ export function AdminChangeLog() {
 
   useEffect(() => {
     loadLogs();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFilter = () => {
     loadLogs(fromDate || undefined, toDate || undefined);
   };
 
-  const handleLogout = () => {
-    logout();
-  };
-
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F4F6F8' }}>
-      {/* Navigation Bar */}
-      <nav className="bg-white" style={{ height: '52px', borderBottom: '0.5px solid #E0DED6' }}>
-        <div className="h-full px-6 flex items-center justify-between">
-          {/* Left: Logo and Nav Links */}
-          <div className="flex items-center gap-8">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  backgroundColor: '#185FA5',
-                  borderRadius: '5px'
-                }}
-              >
-                <span className="text-white font-semibold">T</span>
-              </div>
-              <span className="font-semibold" style={{ fontSize: '16px', color: '#1A1A1A' }}>
-                TRIBOT
-              </span>
-            </div>
-
-            {/* Nav Links */}
-            <div className="flex items-center gap-6">
-              <button
-                onClick={() => navigate('/admin')}
-                className="transition-colors"
-                style={{
-                  fontSize: '14px',
-                  color: '#5F5E5A',
-                  fontWeight: 400
-                }}
-              >
-                Users
-              </button>
-              <button
-                onClick={() => navigate('/admin/sessions')}
-                className="transition-colors"
-                style={{
-                  fontSize: '14px',
-                  color: '#5F5E5A',
-                  fontWeight: 400
-                }}
-              >
-                Session history
-              </button>
-              <button
-                onClick={() => navigate('/admin/changelog')}
-                className="transition-colors"
-                style={{
-                  fontSize: '14px',
-                  color: '#185FA5',
-                  fontWeight: 500
-                }}
-              >
-                Change log
-              </button>
-            </div>
-          </div>
-
-          {/* Right: Admin Badge, Avatar, Divider, and Logout */}
-          <div className="flex items-center gap-3">
-            <div
-              className="px-3 py-1"
-              style={{
-                border: '1px solid #A32D2D',
-                borderRadius: '12px',
-                fontSize: '11px',
-                color: '#A32D2D',
-                fontWeight: 500
-              }}
-            >
-              Admin
-            </div>
-            <div
-              className="flex items-center justify-center text-white font-medium"
-              style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: '#5F5E5A',
-                borderRadius: '50%',
-                fontSize: '13px'
-              }}
-            >
-              AD
-            </div>
-
-            {/* Vertical Divider */}
-            <div style={{ width: '1px', height: '20px', backgroundColor: '#E0DED6' }} />
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 group transition-colors"
-            >
-              <LogOut
-                size={14}
-                className="transition-colors group-hover:text-[#A32D2D]"
-                style={{ color: '#5F5E5A' }}
-              />
-              <span
-                className="transition-colors group-hover:text-[#A32D2D]"
-                style={{ fontSize: '13px', color: '#5F5E5A' }}
-              >
-                Log out
-              </span>
-            </button>
-          </div>
-        </div>
-      </nav>
+    <div>
 
       {/* Main Content */}
-      <div className="p-8">
+      <div className="p-3 sm:p-4 md:p-8">
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-[13px] text-[#5F5E5A] py-20">
             Loading change log…
@@ -194,9 +74,11 @@ export function AdminChangeLog() {
             {error}
           </div>
         ) : (
-          <div className="bg-white" style={{ borderRadius: '12px', border: '0.5px solid #E0DED6', padding: '32px' }}>
+          <div className="bg-white p-4 md:p-8" style={{ borderRadius: '12px', border: '0.5px solid #E0DED6' }}>
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
+            {/* ===== RESPONSIVE  ===== */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-6">
+            {/* ===== END RESPONSIVE ===== */}
               <div className="flex items-center gap-2">
                 <Lock size={18} style={{ color: '#5F5E5A' }} />
                 <div>
@@ -266,22 +148,25 @@ export function AdminChangeLog() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
+                  {/* ===== RESPONSIVE TABLE  ===== */}
                   <tr style={{ borderBottom: '1px solid #E0DED6' }}>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Timestamp</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Admin user</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Action type</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Target</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Details</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Timestamp</th>
+                    <th className="hidden md:table-cell text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Admin user</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Action type</th>
+                    <th className="hidden sm:table-cell text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Target</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Details</th>
                   </tr>
+                  {/* ===== END RESPONSIVE TABLE ===== */}
                 </thead>
                 <tbody>
                   {logs.map((log, idx) => {
                     const colors = getActionColor(log.action_type);
                     return (
                       <tr key={log.id} style={{ borderBottom: idx < logs.length - 1 ? '1px solid #E0DED6' : 'none' }}>
-                        <td className="py-3" style={{ fontSize: '13px', color: '#1A1A1A' }}>{formatTimestamp(log.timestamp)}</td>
-                        <td className="py-3" style={{ fontSize: '13px', color: '#5F5E5A' }}>{log.admin_user}</td>
-                        <td className="py-3">
+                        {/* ===== RESPONSIVE TABLE  ===== */}
+                        <td className="py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#1A1A1A' }}>{formatTimestamp(log.timestamp)}</td>
+                        <td className="hidden md:table-cell py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#5F5E5A' }}>{log.admin_user}</td>
+                        <td className="py-3 px-2 md:px-4">
                           <span
                             className="px-2 py-1"
                             style={{
@@ -295,8 +180,9 @@ export function AdminChangeLog() {
                             {formatActionLabel(log.action_type)}
                           </span>
                         </td>
-                        <td className="py-3" style={{ fontSize: '13px', color: '#1A1A1A' }}>{log.target}</td>
-                        <td className="py-3" style={{ fontSize: '13px', color: '#5F5E5A' }}>{log.details}</td>
+                        <td className="hidden sm:table-cell py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#1A1A1A' }}>{log.target}</td>
+                        <td className="py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#5F5E5A' }}>{log.details}</td>
+                        {/* ===== END RESPONSIVE TABLE ===== */}
                       </tr>
                     );
                   })}

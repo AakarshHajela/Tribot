@@ -5,6 +5,9 @@ import type {
   ChangeLogEntry,
   CreateUserPayload,
   UpdateUserPayload,
+  // ===== RESET PASSWORD =====
+  ResetPasswordResponse,
+  // ===== END RESET PASSWORD =====
 } from '../types';
 
 // ── Response envelope types (internal to this module) ──
@@ -140,6 +143,12 @@ export function deactivateUser(userId: string): Promise<AdminUser> {
 export function reactivateUser(userId: string): Promise<AdminUser> {
   return apiClient.post<AdminUser>(`/api/v1/admin/users/${userId}/reactivate`, {});
 }
+
+// ===== RESET PASSWORD  =====
+export function resetPassword(userId: string): Promise<ResetPasswordResponse> {
+  return apiClient.post<ResetPasswordResponse>(`/api/v1/admin/users/${userId}/reset-password`, {});
+}
+// ===== END RESET PASSWORD =====
 
 // ── Change log ──
 

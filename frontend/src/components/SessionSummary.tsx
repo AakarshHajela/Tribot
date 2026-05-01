@@ -7,11 +7,11 @@ interface SessionSummaryProps {
 
 export function SessionSummary({ session, onBack }: SessionSummaryProps) {
   const categoryLabels = {
-    1: 'Resuscitation — Immediate · life threat',
-    2: 'Emergency — seen within 10 min',
-    3: 'Urgent — seen within 30 min',
-    4: 'Semi-urgent — seen within 60 min',
-    5: 'Non-urgent — seen within 120 min'
+    1: 'Resuscitation - Immediate · life threat',
+    2: 'Emergency - seen within 10 min',
+    3: 'Urgent - seen within 30 min',
+    4: 'Semi-urgent - seen within 60 min',
+    5: 'Non-urgent - seen within 120 min'
   };
 
   const categoryColors = {
@@ -37,7 +37,7 @@ export function SessionSummary({ session, onBack }: SessionSummaryProps) {
         {/* ATS Category */}
         <div className="mb-4">
           <div className={`px-4 py-2.5 rounded-full text-center text-[14px] font-medium ${categoryColors[session.atsCategory]}`}>
-            Category {session.atsCategory} — {categoryLabels[session.atsCategory]}
+            Category {session.atsCategory} - {categoryLabels[session.atsCategory]}
           </div>
         </div>
 

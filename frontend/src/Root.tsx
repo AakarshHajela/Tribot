@@ -21,6 +21,14 @@ function RootContent() {
   }, [location.pathname, mode, setCurrentPatient]);
 
   const handleSelectPatient = (patient: Patient) => {
+    // ===== PATIENT SWITCH GUARD =====
+    if (mode === 'active' && currentPatient) {
+      const confirmed = window.confirm(
+        `You have an active session with ${currentPatient.name}. Switching patients will discard the current session. Continue?`
+      );
+      if (!confirmed) return;
+    }
+    // ===== END PATIENT SWITCH GUARD =====
     setCurrentPatient(patient);
     setMode('active');
   };
@@ -28,12 +36,15 @@ function RootContent() {
   return (
     <div className="min-h-screen bg-[#F4F6F8]">
       <Toaster position="bottom-center" />
+      {/* ===== REAL INITIALS ===== */}
       <NavigationBar
         mode={mode}
         currentPatient={currentPatient}
         onQuickTranslate={() => setQuickTranslateOpen(true)}
         onSelectPatient={handleSelectPatient}
+        user={user}
       />
+      {/* ===== END REAL INITIALS ===== */}
       <Outlet />
       <QuickTranslateDrawer
         isOpen={quickTranslateOpen}

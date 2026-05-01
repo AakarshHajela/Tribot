@@ -12,7 +12,7 @@ export interface Message {
   type: 'nurse' | 'patient';
   originalText: string;
   translatedText: string;
-  confidence: number;
+  confidence_score: number;
 }
 
 export interface Session {
@@ -72,6 +72,9 @@ export interface AdminSession {
   patient_language: string;
   ats_category: number | null;
   avg_translation_confidence: number | null;
+  // ===== PROVIDER NAME IN HISTORY =====
+  provider_name: string | null;
+  // ===== END PROVIDER NAME IN HISTORY =====
 }
 
 /** Matches ChangeLogEntry from GET /api/v1/admin/change-log */
@@ -83,3 +86,19 @@ export interface ChangeLogEntry {
   target: string;
   details: string;
 }
+
+// ===== CHANGE PASSWORD TYPE =====
+/** Matches ChangePasswordRequest for POST /api/v1/auth/change-password */
+export interface ChangePasswordPayload {
+  current_password: string;
+  new_password: string;
+}
+// ===== END CHANGE PASSWORD TYPE =====
+
+// ===== RESET PASSWORD - Rach =====
+/** Matches response from POST /api/v1/admin/users/:id/reset-password */
+export interface ResetPasswordResponse {
+  temporary_password: string;
+  message: string;
+}
+// ===== END RESET PASSWORD =====

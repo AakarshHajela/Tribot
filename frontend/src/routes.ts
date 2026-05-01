@@ -1,7 +1,7 @@
 import { createBrowserRouter } from 'react-router';
 import Root from './Root';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import LoginPage  from './pages/LoginPage';
+import LoginPage from './pages/LoginPage';
 import TriageWorkspace from './pages/TriageWorkspace';
 import History from './pages/History';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -9,6 +9,9 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { AdminSessionHistory } from './pages/AdminSessionHistory';
 import { AdminChangeLog } from './pages/AdminChangeLog';
 // ===== END ADMIN ROUTES =====
+// ===== ADMIN LAYOUT IMPORT =====
+import { AdminLayout } from './pages/AdminLayout';
+// ===== END ADMIN LAYOUT IMPORT =====
 
 export const router = createBrowserRouter([
   {
@@ -28,9 +31,14 @@ export const router = createBrowserRouter([
         ],
       },
       // ===== ADMIN ROUTES =====
-      { path: '/admin', Component: AdminDashboard },
-      { path: '/admin/sessions', Component: AdminSessionHistory },
-      { path: '/admin/changelog', Component: AdminChangeLog },
+      {
+        Component: AdminLayout,
+        children: [
+          { path: '/admin', Component: AdminDashboard },
+          { path: '/admin/sessions', Component: AdminSessionHistory },
+          { path: '/admin/changelog', Component: AdminChangeLog },
+        ],
+      },
       // ===== END ADMIN ROUTES =====
     ],
   },

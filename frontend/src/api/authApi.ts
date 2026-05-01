@@ -1,7 +1,12 @@
 import { apiClient, setAuthToken, clearAuthToken } from './apiClient';
 
 export interface CurrentUser {
+  id: string;
   email: string;
+  full_name: string | null;
+  role: 'admin' | 'clinician';
+  is_active: boolean;
+  created_at: string;
 }
 
 export interface LoginCredentials {
@@ -35,3 +40,12 @@ export function logout(): void {
   clearAuthToken();
   window.location.replace('/login');
 }
+
+// ===== CHANGE PASSWORD =====
+export function changePassword(payload: { currentPassword: string; newPassword: string }): Promise<{ message: string }> {
+  return apiClient.post<{ message: string }>('/api/v1/auth/change-password', {
+    current_password: payload.currentPassword,
+    new_password: payload.newPassword,
+  });
+}
+// ===== END CHANGE PASSWORD =====

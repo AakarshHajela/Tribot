@@ -30,14 +30,14 @@ const demoSessions: Session[] = [
         type: 'nurse',
         originalText: 'Hello, can you describe your symptoms?',
         translatedText: 'مرحبا، هل يمكنك وصف الأعراض الخاصة بك؟',
-        confidence: 96
+        confidence_score: 96
       },
       {
         id: '2',
         type: 'patient',
         originalText: 'ألم في الصدر وضيق في التنفس',
         translatedText: 'Chest pain and shortness of breath',
-        confidence: 94
+        confidence_score: 94
       }
     ],
     vitals: {

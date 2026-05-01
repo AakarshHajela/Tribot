@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, LogOut } from 'lucide-react';
-import { useNavigate } from 'react-router';
-import { logout } from '../api/authApi';
+import { Search } from 'lucide-react';
 import {
   listUsers,
   createUser,
@@ -9,8 +7,14 @@ import {
   deleteUser,
   deactivateUser,
   reactivateUser,
+  // ===== RESET PASSWORD BUTTON  =====
+  resetPassword,
+  // ===== END RESET PASSWORD BUTTON =====
 } from '../api/adminApi';
-import type { AdminUser, CreateUserPayload, UpdateUserPayload } from '../types';
+// ===== RESET PASSWORD BUTTON  =====
+import { toast } from 'sonner';
+// ===== END RESET PASSWORD BUTTON =====
+import type { AdminUser, CreateUserPayload, UpdateUserPayload, ResetPasswordResponse } from '../types';
 
 function formatLastLogin(iso: string | null): string {
   if (!iso) return 'Never';
@@ -25,8 +29,6 @@ function formatLastLogin(iso: string | null): string {
 }
 
 export function AdminDashboard() {
-  const navigate = useNavigate();
-
   // ── Data state ──
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +57,10 @@ export function AdminDashboard() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  // ===== RESET PASSWORD BUTTON  =====
+  const [resetResult, setResetResult] = useState<ResetPasswordResponse | null>(null);
+  // ===== END RESET PASSWORD BUTTON =====
+
   // ── Fetch users ──
   useEffect(() => {
     setIsLoading(true);
@@ -64,10 +70,6 @@ export function AdminDashboard() {
       .catch((err: Error) => setError(err.message || 'Could not load users.'))
       .finally(() => setIsLoading(false));
   }, [searchQuery]);
-
-  const handleLogout = () => {
-    logout();
-  };
 
   // ── Create user ──
   const handleCreateUser = () => {
@@ -142,121 +144,11 @@ export function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F4F6F8' }}>
-      {/* Navigation Bar */}
-      <nav className="bg-white" style={{ height: '52px', borderBottom: '0.5px solid #E0DED6' }}>
-        <div className="h-full px-6 flex items-center justify-between">
-          {/* Left: Logo and Nav Links */}
-          <div className="flex items-center gap-8">
-            {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div
-                className="flex items-center justify-center"
-                style={{
-                  width: '28px',
-                  height: '28px',
-                  backgroundColor: '#185FA5',
-                  borderRadius: '5px'
-                }}
-              >
-                <span className="text-white font-semibold">T</span>
-              </div>
-              <span className="font-semibold" style={{ fontSize: '16px', color: '#1A1A1A' }}>
-                TRIBOT
-              </span>
-            </div>
-
-            {/* Nav Links */}
-            <div className="flex items-center gap-6">
-              <button
-                onClick={() => navigate('/admin')}
-                className="transition-colors"
-                style={{
-                  fontSize: '14px',
-                  color: '#185FA5',
-                  fontWeight: 500
-                }}
-              >
-                Users
-              </button>
-              <button
-                onClick={() => navigate('/admin/sessions')}
-                className="transition-colors"
-                style={{
-                  fontSize: '14px',
-                  color: '#5F5E5A',
-                  fontWeight: 400
-                }}
-              >
-                Session history
-              </button>
-              <button
-                onClick={() => navigate('/admin/changelog')}
-                className="transition-colors"
-                style={{
-                  fontSize: '14px',
-                  color: '#5F5E5A',
-                  fontWeight: 400
-                }}
-              >
-                Change log
-              </button>
-            </div>
-          </div>
-
-          {/* Right: Admin Badge, Avatar, Divider, and Logout */}
-          <div className="flex items-center gap-3">
-            <div
-              className="px-3 py-1"
-              style={{
-                border: '1px solid #A32D2D',
-                borderRadius: '12px',
-                fontSize: '11px',
-                color: '#A32D2D',
-                fontWeight: 500
-              }}
-            >
-              Admin
-            </div>
-            <div
-              className="flex items-center justify-center text-white font-medium"
-              style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: '#5F5E5A',
-                borderRadius: '50%',
-                fontSize: '13px'
-              }}
-            >
-              AD
-            </div>
-
-            {/* Vertical Divider */}
-            <div style={{ width: '1px', height: '20px', backgroundColor: '#E0DED6' }} />
-
-            {/* Logout Button */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 group transition-colors"
-            >
-              <LogOut
-                size={14}
-                className="transition-colors group-hover:text-[#A32D2D]"
-                style={{ color: '#5F5E5A' }}
-              />
-              <span
-                className="transition-colors group-hover:text-[#A32D2D]"
-                style={{ fontSize: '13px', color: '#5F5E5A' }}
-              >
-                Log out
-              </span>
-            </button>
-          </div>
-        </div>
-      </nav>
+    <div>
+    
 
       {/* Main Content */}
-      <div className="p-8">
+      <div className="p-3 sm:p-4 md:p-8">
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center text-[13px] text-[#5F5E5A] py-20">
             Loading users…
@@ -266,9 +158,11 @@ export function AdminDashboard() {
             {error}
           </div>
         ) : (
-          <div className="bg-white" style={{ borderRadius: '12px', border: '0.5px solid #E0DED6', padding: '32px' }}>
+          <div className="bg-white p-4 md:p-8" style={{ borderRadius: '12px', border: '0.5px solid #E0DED6' }}>
             {/* Header */}
-            <div className="flex items-start justify-between mb-6">
+            {/* ===== RESPONSIVE  ===== */}
+            <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
+            {/* ===== END RESPONSIVE ===== */}
               <div>
                 <h2 style={{ fontSize: '22px', fontWeight: 500, color: '#1A1A1A', marginBottom: '4px' }}>
                   User management
@@ -294,7 +188,9 @@ export function AdminDashboard() {
             </div>
 
             {/* Search Bar */}
-            <div className="mb-6 relative" style={{ width: '40%' }}>
+            {/* ===== RESPONSIVE  ===== */}
+            <div className="mb-6 relative w-full md:w-[40%]">
+            {/* ===== END RESPONSIVE ===== */}
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#5F5E5A' }} />
               <input
                 type="text"
@@ -317,22 +213,24 @@ export function AdminDashboard() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
+                  {/* ===== RESPONSIVE TABLE  ===== */}
                   <tr style={{ borderBottom: '1px solid #E0DED6' }}>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Name</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Email</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Role</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Status</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Last login</th>
-                    <th className="text-left pb-3 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Actions</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Name</th>
+                    <th className="hidden md:table-cell text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Email</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Role</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Status</th>
+                    <th className="hidden lg:table-cell text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Last login</th>
+                    <th className="text-left pb-3 px-2 md:px-4 uppercase tracking-wide" style={{ fontSize: '11px', color: '#5F5E5A', fontWeight: 500 }}>Actions</th>
                   </tr>
+                  {/* ===== END RESPONSIVE TABLE ===== */}
                 </thead>
                 <tbody>
                   {users.map((user, idx) => (
                     <tr key={user.id} style={{ borderBottom: idx < users.length - 1 ? '1px solid #E0DED6' : 'none' }}>
-                      <td className="py-3" style={{ fontSize: '13px', color: '#1A1A1A' }}>{user.full_name ?? '—'}</td>
-                      <td className="py-3" style={{ fontSize: '13px', color: '#5F5E5A' }}>{user.email}</td>
-                      <td className="py-3" style={{ fontSize: '13px', color: '#1A1A1A' }}>{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
-                      <td className="py-3">
+                      <td className="py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#1A1A1A' }}>{user.full_name ?? '-'}</td>
+                      <td className="hidden md:table-cell py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#5F5E5A' }}>{user.email}</td>
+                      <td className="py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#1A1A1A' }}>{user.role.charAt(0).toUpperCase() + user.role.slice(1)}</td>
+                      <td className="py-3 px-2 md:px-4">
                         <span
                           className="px-2 py-1"
                           style={{
@@ -346,9 +244,9 @@ export function AdminDashboard() {
                           {user.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td className="py-3" style={{ fontSize: '13px', color: '#5F5E5A' }}>{formatLastLogin(user.last_login)}</td>
-                      <td className="py-3">
-                        <div className="flex gap-3">
+                      <td className="hidden lg:table-cell py-3 px-2 md:px-4 text-[12px] md:text-[13px]" style={{ color: '#5F5E5A' }}>{formatLastLogin(user.last_login)}</td>
+                      <td className="py-3 px-2 md:px-4">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                           <button
                             className="hover:underline"
                             style={{ fontSize: '13px', color: '#185FA5' }}
@@ -376,6 +274,21 @@ export function AdminDashboard() {
                           >
                             Delete
                           </button>
+                          {/* ===== RESET PASSWORD BUTTON  ===== */}
+                          <button
+                            className="hover:underline"
+                            style={{ fontSize: '13px', color: '#5F5E5A' }}
+                            onClick={() => {
+                              if (window.confirm(`Reset password for ${user.full_name ?? user.email}? A new temporary password will be generated.`)) {
+                                resetPassword(user.id)
+                                  .then(setResetResult)
+                                  .catch((err: Error) => toast.error(err.message || 'Could not reset password.'));
+                              }
+                            }}
+                          >
+                            Reset password
+                          </button>
+                          {/* ===== END RESET PASSWORD BUTTON ===== */}
                         </div>
                       </td>
                     </tr>
@@ -389,8 +302,10 @@ export function AdminDashboard() {
 
       {/* Add User Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white" style={{ width: '480px', borderRadius: '12px', padding: '32px' }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          {/* ===== RESPONSIVE - Racha ===== */}
+          <div className="bg-white w-full max-w-[480px]" style={{ borderRadius: '12px', padding: '32px' }}>
+          {/* ===== END RESPONSIVE ===== */}
             {tempPassword ? (
               <>
                 <h3 className="mb-4" style={{ fontSize: '18px', fontWeight: 500, color: '#1A1A1A' }}>
@@ -495,7 +410,9 @@ export function AdminDashboard() {
                     <p style={{ fontSize: '12px', color: '#A32D2D' }}>{addError}</p>
                   )}
 
-                  <div className="flex gap-3 pt-2">
+                  {/* ===== RESPONSIVE - Racha ===== */}
+                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  {/* ===== END RESPONSIVE ===== */}
                     <button
                       onClick={handleCreateUser}
                       disabled={isSubmitting}
@@ -535,8 +452,10 @@ export function AdminDashboard() {
 
       {/* Edit User Modal */}
       {editTarget && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white" style={{ width: '480px', borderRadius: '12px', padding: '32px' }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          {/* ===== RESPONSIVE - Racha ===== */}
+          <div className="bg-white w-full max-w-[480px]" style={{ borderRadius: '12px', padding: '32px' }}>
+          {/* ===== END RESPONSIVE ===== */}
             {/* ===== BACK BUTTON ===== */}
             <button
               onClick={() => {
@@ -594,7 +513,9 @@ export function AdminDashboard() {
                 <p style={{ fontSize: '12px', color: '#A32D2D' }}>{editError}</p>
               )}
 
-              <div className="flex gap-3 pt-2">
+              {/* ===== RESPONSIVE - Racha ===== */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              {/* ===== END RESPONSIVE ===== */}
                 <button
                   onClick={handleUpdateUser}
                   disabled={isEditing}
@@ -632,8 +553,10 @@ export function AdminDashboard() {
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && deleteTarget && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white" style={{ width: '440px', borderRadius: '12px', padding: '32px' }}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          {/* ===== RESPONSIVE - Racha ===== */}
+          <div className="bg-white w-full max-w-[440px]" style={{ borderRadius: '12px', padding: '32px' }}>
+          {/* ===== END RESPONSIVE ===== */}
             <h3 className="mb-3" style={{ fontSize: '16px', fontWeight: 500, color: '#1A1A1A' }}>
               Delete user
             </h3>
@@ -645,7 +568,9 @@ export function AdminDashboard() {
               <p className="mb-4" style={{ fontSize: '12px', color: '#A32D2D' }}>{deleteError}</p>
             )}
 
-            <div className="flex gap-3">
+            {/* ===== RESPONSIVE - Racha ===== */}
+            <div className="flex flex-col sm:flex-row gap-3">
+            {/* ===== END RESPONSIVE ===== */}
               <button
                 onClick={handleDeleteUser}
                 disabled={isDeleting}
@@ -683,6 +608,67 @@ export function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* ===== RESET PASSWORD RESULT MODAL - Rach ===== */}
+      {resetResult && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white w-full max-w-[440px]" style={{ borderRadius: '12px', padding: '32px' }}>
+            <h3 className="mb-3" style={{ fontSize: '16px', fontWeight: 500, color: '#1A1A1A' }}>
+              Password reset
+            </h3>
+            <p className="mb-2" style={{ fontSize: '13px', color: '#5F5E5A', lineHeight: '1.6' }}>
+              Share this temporary password with the user. It will not be shown again.
+            </p>
+            <div
+              className="mb-6 px-4 py-3 font-mono"
+              style={{
+                backgroundColor: '#F4F6F8',
+                border: '1px solid #E0DED6',
+                borderRadius: '8px',
+                fontSize: '14px',
+                color: '#1A1A1A',
+                letterSpacing: '0.05em'
+              }}
+            >
+              {resetResult.temporary_password}
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(resetResult.temporary_password)
+                    .then(() => toast.success('Copied to clipboard.'))
+                    .catch(() => toast.error('Could not copy.'));
+                }}
+                className="flex-1 transition-colors hover:bg-gray-50"
+                style={{
+                  height: '40px',
+                  border: '1px solid #E0DED6',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  color: '#5F5E5A'
+                }}
+              >
+                Copy to clipboard
+              </button>
+              <button
+                onClick={() => setResetResult(null)}
+                className="flex-1 transition-opacity hover:opacity-90"
+                style={{
+                  height: '40px',
+                  backgroundColor: '#185FA5',
+                  color: 'white',
+                  borderRadius: '8px',
+                  fontSize: '14px',
+                  fontWeight: 500
+                }}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ===== END RESET PASSWORD RESULT MODAL ===== */}
     </div>
   );
 }
